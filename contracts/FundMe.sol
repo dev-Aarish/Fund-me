@@ -13,13 +13,13 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 
 contract fundMe{
 
-    uint256 public minimumUSD=5;
+    uint256 public minimumUSD=5e18;//This is the hardcoded amount of 5$ amt at-least need to be funded.
 
     function fund() public payable{ //to recieve native blockchain tokens by a function, we need to add the 'payable' keyword
         //Allow user to send $
         //Have a min amt to be funded
         //How do we send ETH to this contract?
-        require(msg.value>= minimumUSD,"Didn't send enough ETH");   //1e18 wei=1ETH, This value is the field present in the deploy section in remix IDE.
+        require(getConversionRate(msg.value)>= minimumUSD,"Didn't send enough ETH");   //1e18 wei=1ETH, This value is the field present in the deploy section in remix IDE.
     }
 
     // function withdraw() public{}
@@ -33,7 +33,11 @@ contract fundMe{
         return uint256(price*1e10);
     }    
 
-    function getConversionRate() public{}   //converts a value to its converted value based off of its price.
+    function getConversionRate(uint256 ethAmount) public view returns(uint256){ //converts a value to its converted value based off of its price.
+        uint256 ethPrice=getPrice();
+        uint256 ethAmountInUsd=(ethPrice*ethAmount)/1e18;
+        return ethAmountInUsd;
+    }   
 
     function getVersion() public view returns(uint256){
         return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
