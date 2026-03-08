@@ -9,39 +9,32 @@ Basic Idea of the contract:
 */
 
 //This is the interface used for getting the ABI. We are importing the interface from the gitHub.
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+// import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+
+import {PriceConverter} from "./PriceConverter.sol";
 
 contract fundMe{
 
+    using PriceConverter for uint256;
+
     uint256 public minimumUSD=5e18;//This is the hardcoded amount of 5$ amt at-least need to be funded.
+    address[] public funders;
+    mapping(address funder =>uint256 amountFunded) public addressToAmountFunded;
 
     function fund() public payable{ //to recieve native blockchain tokens by a function, we need to add the 'payable' keyword
         //Allow user to send $
         //Have a min amt to be funded
         //How do we send ETH to this contract?
-        require(getConversionRate(msg.value)>= minimumUSD,"Didn't send enough ETH");   //1e18 wei=1ETH, This value is the field present in the deploy section in remix IDE.
+        require(msg.value.getConversionRate()>= minimumUSD,"Didn't send enough ETH");   //1e18 wei=1ETH, This value is the field present in the deploy section in remix IDE.
+        //In the above line of code, we imported the function getConversionRate from the PriceConverter lib and point to be noted, that even though getConversionRate function takes one uint256, nothing id passes as an arg.
+        //That is becasue the msg.value itself gets passed as the parameter in the function while calling.
+        funders.push(msg.sender);
+        addressToAmountFunded[msg.sender]+=msg.value;
     }
 
     // function withdraw() public{}
 
-    function getPrice() public view returns(uint256){ //to get the current price of ETH in terms of USD.
-        //Address: 0x694AA1769357215DE4FAC081bf1f309aDC325306
-        //ABI
-        AggregatorV3Interface priceFeed=AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
-        (, int256 price, , , ) = priceFeed.latestRoundData();
-        //ETH/USD rate in 18 digit
-        return uint256(price*1e10);
-    }    
 
-    function getConversionRate(uint256 ethAmount) public view returns(uint256){ //converts a value to its converted value based off of its price.
-        uint256 ethPrice=getPrice();
-        uint256 ethAmountInUsd=(ethPrice*ethAmount)/1e18;
-        return ethAmountInUsd;
-    }   
-
-    function getVersion() public view returns(uint256){
-        return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
-    }
 
 }
 
