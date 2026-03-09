@@ -50,10 +50,12 @@ contract fundMe{
         funders=new address[](0);   //resetting the array
 
         //transfer
-        payable(msg.sender).transfer(address(this).balance);
+        // payable(msg.sender).transfer(address(this).balance);
+
         //send
-        bool sendSuccess=payable(msg.sender).send(address(this).balance); 
-        require(sendSuccess,"Send failed");
+        // bool sendSuccess=payable(msg.sender).send(address(this).balance); 
+        // require(sendSuccess,"Send failed");
+
         //call
         (bool callSuccess,)=payable(msg.sender).call{value: address(this).balance}("");
         require(callSuccess,"Call failed");
@@ -65,6 +67,14 @@ contract fundMe{
             revert NotOwner();
         }
         _;
+    }
+
+    receive() external payable{
+        fund();
+    }
+
+    fallback() external payable{
+        fund();
     }
 
 }
